@@ -1,0 +1,94 @@
+\documentclass[a4paper,10pt,oneside]{jsbook}
+%
+\usepackage{amsmath,amssymb,bm}
+\usepackage{bm}
+\usepackage[dvipdfmx]{graphicx}
+\usepackage{ascmac}
+\usepackage{makeidx}
+\usepackage{txfonts}
+\usepackage{indentfirst}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{comment}
+\AtBeginDvi{\special {pdf:tounicode EUC-UCS2}}
+\usepackage[dvipdfmx, setpagesize=false, bookmarks=true, bookmarksnumbered=true]{hyperref}
+%
+\makeindex
+%
+\newcommand{\diff}{\mathrm{d}}            %微分記号
+\newcommand{\divergence}{\mathrm{div}\,}  %ダイバージェンス
+\newcommand{\grad}{\mathrm{grad}\,}       %グラディエント
+\newcommand{\rot}{\mathrm{rot}\,}         %ローテーション
+%
+\setlength{\textwidth}{\fullwidth}
+\setlength{\textheight}{44\baselineskip}
+\addtolength{\textheight}{\topskip}
+\setlength{\voffset}{-0.6in}
+%
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 表紙
+\begin{titlepage}
+\noindent
+国立大学法人 東京大学　生産技術研究所 御中
+\begin{center}
+	\vspace{8cm}
+	{\Huge \textbf{HPC/PFポータルサブシステムGUIの\\機能改修作業} } \\
+	\vspace{1cm}
+	{\Huge \textbf{利用プログラムリスト}} \\
+	\vspace{10cm}
+	{\Large \textbf{2015年3月20日}} \\
+	\vspace{0.5cm}
+	{\Large \textbf{株式会社イマジカデジタルスケープ}}
+\end{center}
+\end{titlepage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 目次
+\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 本文
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{使用モジュールおよび権利処理}
+HPC/PFポータルサブシステムGUIの機能改修作業において，利用した既存モジュールとその権利処理について記載する．
+各利用モジュールの名称，権利者，権利処理内容，使用用途を表\ref{ops}に記載する．
+
+\begin{table}[htbp]
+\begin{center}
+\caption{利用モジュールおよび権利処理一覧}
+\label{ops}
+\begin{tabular}{|l|l|l|l|}
+\hline
+名称 & 権利者 & 権利処理 & 使用用途 \\
+\hline
+\hline
+Lua & Lua.org, PUC-Rio. & MIT License & 制御用スクリプト言語 \\
+\hline
+Node.js & \shortstack[l]{Joyent, Inc. and \\ other Node contributors} & MIT License & サーバサイドスクリプト言語 \\
+\hline
+Redis & \shortstack[l]{Salvatore Sanfilippo and\\ Pieter Noordhuis} & BSD License & KVS データベース \\
+\hline
+Socket.IO &  \shortstack[l]{ Guillermo Rauch,\\ gradebook,\\ LearnBoost Labs}  & MIT License & Node.js 通信ライブラリ \\
+\hline
+ansi\_up.js & Dru Nelson  & MIT License & ANSIエスケープコードカラー変換 \\
+\hline
+ssh2 & Brian White  & MIT License & SSH2 client module for node.js \\
+\hline
+Xcrypt & \shortstack[l]{ Tatsuya Abe,\\Tasuku Hiraishi,\\Takeshi Iwashita,\\Yohei Miyake,\\Hiroshi Nakashima }  & Free software & Job Level Parallel Script Language \\
+\hline
+dkjson & David Heiko Kolf & MIT License & JSON module for Lua \\
+\hline
+Tar for Windows & GNU tar & GPL License & tar command for Windows\\
+\hline
+GZip for Windows & \shortstack[l]{ Jean-loup Gailly,\\ Mark Adler }& GPL License & gzip command for Windows\\
+\hline
+OpenSSH for Windows & The OpenBSD Project & BSD License & OpenSSH Windows実装 \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\end{document}
