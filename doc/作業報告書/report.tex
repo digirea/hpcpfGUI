@@ -124,33 +124,274 @@ KDBからダウンロードしたプロジェクトアーカイブをGUI上か�
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{データ定義等の設計に関する作業内容}
-データ定義等の設計に関する作業内容は以下の通りである.
+担当者とデータ定義の設計を議論した。
+メタデータ定義内容は以下の通りである.
 
-\section{プロジェクトのメタデータ定義}
-----仕様-----
-プロジェクトのメタデータを記述するプロジェクト情報ファイル（PIF）、ケースのメタデータを記述するケース情報ファイル（CIF）を定義すること。PIF,CIFはJSON形式とする。雛形となるPIF,CIF案は本学担当者より提示する。具体的には以下の内容を含むものとする。
-PIFにおけるプロジェクト概要情報、内包するケースやファイルの情報、改変履歴等の定義
-CIFにおけるリモートジョブからの改修対象ファイル、あるいは改修除外対象ファイルの指定
-CIFにおける入力・出力ファイルの情報。別途提供するFFV-C, FFR, FFB, FISTR, ADVENTURE, PHASE/0, ABINIT-MP等各解析アプリケーション用のプロジェクトアーカイブから得られる情報を元に、各ケースにおける入力・出力を定義するために必要十分な情報を定義すること。
-----
+\section{メタデータ定義}
 
-=======
-TODO
-======
+\subsection{プロジェクトのメタデータの定義}
+プロジェクトのメタデータを以下のように再定義した。
 
+\begin{table}[htb]
+	\begin{tabular}{|l|l|l|} \hline
+		ファイル名 & 格納情報 & 概要 \\\hline\hline
+		pmd.json & プロジェクトメタデータ & プロジェクトのメタデータを記述 \\\hline
+		cei.json   & ケース実行情報  & プロジェクト実行時のケース入力情報を記述 \\\hline
+		psi.json   & 実行状況情報 & ワークフロー実行時にステータス情報を記述 \\\hline
+	\end{tabular}
+\end{table}
+
+\subsubsection{プロジェクトメタデータファイル}
+主にプロジェクトの基本情報を記述する。
+プロジェクト情報ファイルの定義例を以下に示す。
+\begin{verbatim}
+/* pmd.json */
+{
+     "hpcpf":{
+         "project_meta_data":{
+             "name_hr":"human-readableなプロジェクトの名前を記述します",
+             "description_hr":"human-readableなプロジェクトの詳細な説明を記述します",
+
+             "kdb":{
+             	    /* KDBからダウンロードしたプロジェクトの場合、記述されている */
+                 "base":"http://www.cenav.org/kdb/?p=52",
+             }
+
+            "clean":[  /* make clean的なルールを記述（削除対象ファイルを列挙） */
+                "./*.log" 
+            ]
+         }
+     }
+}
+\end{verbatim}
+
+\subsubsection{ケース実行情報ファイル}
+
+旧Case Info File(CIF)から実行時に決定される情報を分離、本ファイル(cei.json)に記述することとした。
+実行時にケース実行情報ファイルから、プロジェクトワークフローファイル(pwf.lua)を生成し、hpcpfGUIがプロジェクトを実行する。
+
+\begin{verbatim}
+/* cei.json */
+{
+    "hpcpf":{
+         "case_exec_info":{
+         	  /* ケースを実行するリモートマシン情報。*/
+	            /* 詳細は$HPCPF_HOME/conf/targetconf.jsonに記述されている */
+           "target":"FOCUS_SSH"
+
+           "inputs":[   /* CMDのinputs配列に対応した、具体的入力ファイルの配列 */
+           {
+                  "path":"./INPUT_DATA/ffvcparam.tp",
+           },
+           {
+           	      /* プリプロセスケースのサブディレクトリを参照する例 */
+                  "path":"../case_preproc/INPUT_DATA/geo.stl",
+           }
+           ],
+
+           /* リモートマシン上の実行ディレクトリ */
+           "filepath_remote":"/home1/glej/ulej0001/HPCPF_PROJ/ffvc_20150313_00/",
+     }
+}
+\end{verbatim}
+
+\subsubsection{実行状況情報ファイル}
+
+プロジェクトワークフロー実行時に、ケースごとの実行状況を記述する。
+ワークフロー実行前にはファイルは存在しない。プロジェクトワークフロー実行時に
+hpcpfGUIによって作成される。
+
+\begin{verbatim}
+/* psi.json */
+{
+    "hpcpf": {
+        "case_status": [
+            {“CaseA”: “finished”},
+            {“CaseB”: “transfered”},
+            {“CaseC”: “running”},
+            {“CaseD”: “not_run”}
+        ]
+    }
+}
+\end{verbatim}
+
+
+\subsection{ケースのメタデータの定義}
+
+ケースのメタデータを以下のように定義した。
+
+\begin{table}[htb]
+	\begin{tabular}{|l|l|l|} \hline
+		ファイル名 & 格納情報 & 概要 \\\hline\hline
+		cmd.json & ケースメタデータ & ケースの基本情報および入出力ファイル情報を記述 \\\hline
+	\end{tabular}
+\end{table}
+
+\subsubsection{ケース情報ファイル}
+
+ケースをプロジェクトワークフローで実行するための情報を記述する。
+プロジェクトワークフローから入力データの指定のため、入出力可能なパラメータファイルの形式を指定する。
+ケース入力の初期値が記述可能である。
+
+\begin{verbatim}
+/* cmd.json */
+{
+    "hpcpf":{
+         "case_meta_data":{
+             "name_hr":"human-readableなケースの名前を記述します",
+             "description_hr":"human-readableなケースの詳細な説明を記述します",
+
+            "type":"simuration",
+            "software":{      /* type,versionは必須、それ以外はs/w毎に必要な内容を定義 */
+                "name_hr":"FFV-C",
+                "description_hr":"熱流体ソルバーFrontflow/violet-Cartesian",
+                "type":"ffv-c",
+                "version":"1.0.0" 
+            },
+
+            "inputs":[
+                {
+                    "name_hr":"初期化ファイル",
+                    "description_hr":"FFV-Cの初期化パラメタファイル",
+                    "type":"initial_data",
+                    "format":"text_parser",
+                    "required":true
+                    "path":"./ffvc_param.tp",
+               },
+               {
+                    "name_hr":"物体形状",
+                    "description_hr":"流れ場中の物体形状STLファイル",
+                    "type":"geometory",
+                    "format":"STL",
+                    "required":true
+                    "path":"./geo.stl",
+               }
+            ],
+            /* 回収対象とするファイルリスト（回収対象が明確な場合に指定） */
+            "collection_include":"*_000019999.sph profiling.txt",
+            /* 回収対象から除外するファイルリスト */
+            "collection_exclude":"*.log prs_*.sph",
+
+            "outputs":[   /* 回収対象ファイルを列挙 */
+                 {
+                     "name_hr":"時間平均圧力データ（最終ステップ）",
+                     "description_hr":"",
+                     "type":"solver_result",
+                     "format":"SPH",
+                     "path":"./OUTPUT_DATA/prsa_000019999.sph",
+                 },
+                 {
+                     "name_hr":"時間平均速度場データ（最終ステップ）",
+                     "description_hr":"",
+                     "type":"solver_result",
+                     "format":"SPH",
+                     "path":"./OUTPUT_DATA/vela_000019999.sph",
+                },
+                 {
+                     "name_hr":"実行結果統計情報",
+                     "description_hr":"",
+                     "type":"solver_result",
+                     "format":"txt",
+                     "path":"./OUTPUT_DATA/profiling.txt",
+                 }
+             ],
+
+            "clean":[  /* make clean的なルールを記述（削除対象ファイルを列挙） */
+                "./OUTPUT_DATA/",
+                "./*.log" 
+            ]
+        }
+    }
+}
+\end{verbatim}
+
+
+
+\subsection{アプリケーションのメタデータの定義}
+
+hpcpfGUIのアプリケーション設定に以下のファイルを定義した。
+
+\begin{table}[htb]
+	\begin{tabular}{|l|l|l|} \hline
+		ファイル名 & 格納情報 & 概要 \\\hline\hline
+		targetconf.json & ジョブ実行先情報 &ジョブ実行先情報を記述 \\\hline
+		registered\_host.json & 接続先登録情報 & ファイルブラウザで利用する接続先情報を記述 \\\hline
+		project\_history.json & プロジェクト履歴 & 最近利用したプロジェクト情報を記述 \\\hline
+	\end{tabular}
+\end{table}
+
+registered\_host.json および、project\_history.jsonに関してはすでに実装されているhpcpfGUIの仕様から変更はない。
+
+\subsection {ジョブ実行先情報ファイル}
+ケースワークフローを実行する際のジョブ実行先情報を記述する。
+主に接続先のアドレスと秘密鍵、実行ワーキングディレクトリの指定が記述される。 
+
+\begin{verbatim}
+/* targetconf.json */
+{
+    "hpcpf":{
+        "targets":[
+            {
+                "type":"local",
+                "name_hr":"ローカルPC",
+                "server":"localhost",
+                "workpath":"/home/hoge/HPCPF_PROJ" 
+            },
+            {
+                "type":"FOCUS_SSH",
+                "name_hr":"FOCUSスパコン（SSH多段接続）",
+                "sshkey":"/home/hoge/.ssh/id_rsa.FOCUS",
+                "server":"ff01.j-focus.jp",
+                "workpath":"/home1/glej/ulej0001/HPCPF_PROJ" 
+            },
+            {
+                "type":"K_Computer_kadai0001",
+                "name_hr":"京コンピュータ（課題番号：0001）",
+                "sshkey":"/home/hoge/.ssh/id_rsa.K",
+                "server":"k.aics.riken.jp",
+                "workpath":"/home/kadai0001/user0001/HPCPF_PROJ" 
+            }
+        ]        
+    }
+}
+\end{verbatim}
 
 \section{CIFの入出力ファイル情報を利用したワークフロー駆動用APIの設計}
-----仕様-----
-複数のケースが含まれるプロジェクトワークフローを実行する場合、ケース間で受け渡しされるデータの情報はCIFに記述されている。CIFの入出力データ定義を利用して、ファイルパス等をプログラムの引数に展開するためのAPIを設計すること。
-----
+ケースメタデータファイル、cmd.json(旧CIF.json) に基づいて、ワークフロー駆動APIの設計を行った。
 
-=======
-TODO
-======
+ケースに入力するデータは基本的にファイルである。そのため、ケース間のデータの受け渡しはファイルで行われる。
+つまり、ケースへの入力が必要なパラメータはファイルパスとなる。
+
+具体的なケースの入出力情報例を図\ref{fig:caseinfo}に示す。入出力情報はケースメタデータ(cmd.json)から以下の情報を読み取ることができる。
+
+\begin{figure}[htbp]
+	\begin{center}
+		\includegraphics[width=7.0cm]{image/caseinfo.png}
+	\end{center}
+	\caption{ケース情報例}
+	\label{fig:caseinfo}
+\end{figure}
+
+ケースメタデータから取得されたケースのメタ情報をもとに実際のワークフローを構築する。
+例として図\ref{fig:exampleprojectflow}のようなものを想定する。
+
+これらの情報はケース実行情報としてcei.jsonに記述される。
+ケース実行情報はGUIツールを用いて自動的に出力されることを想定している。
+
+\begin{figure}[htbp]
+	\begin{center}
+		\includegraphics[width=12.0cm]{image/workflow.png}
+	\end{center}
+	\caption{プロジェクトワークフロー例}
+	\label{fig:exampleprojectflow}
+\end{figure}
+
+
+
 
 
 \section{ワークフローファイルの名称統一}
-プロジェクトワークフローのファイル名は, pwf.json, ケースワークフロー名は cwf.luaに統一した.
+プロジェクトワークフローのファイル名は, pwf.lua, ケースワークフロー名は cwf.luaに統一した.
 
 \end{document}
 
